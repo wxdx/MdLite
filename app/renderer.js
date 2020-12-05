@@ -42,17 +42,32 @@ const highlightCode = () => {
     })
 }
 
+const addLinkListener = () => {
+    const links = document.querySelectorAll('a[href]')
+    links.forEach((link) => {
+        link.addEventListener('click',(event) => {
+            event.preventDefault();
+            const url = event.target.href;
+            console.log(url)
+            ipcRenderer.send('open-url', url);
+        });
+    })
+}
 markdownView.addEventListener('keyup', (event)=>{
     const currentContent = event.target.value;
     renderMarkdownToHtml(currentContent);
+    addLinkListener();
 })
+
 newFileButton.addEventListener('click',(event) => {
     mainProcess.createWindow();
 })
+
 openFileButton.addEventListener('click',(event) => {
 
     mainProcess.getFileFromUser(currentWindow);
 })
+
 ipcRenderer.on('file-opened',(event,file,content) => {
     markdownView.value = content;
     renderMarkdownToHtml(content);

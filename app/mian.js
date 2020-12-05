@@ -1,4 +1,4 @@
-const { app, dialog ,BrowserWindow, ipcMain } = require('electron');
+const { app, dialog ,BrowserWindow, ipcMain,shell } = require('electron');
 const fs = require('fs')
 
 const windows = new Set();
@@ -80,3 +80,7 @@ const openFile = (targetWindow,file) => {
     const content = fs.readFileSync(file).toString();
     targetWindow.webContents.send('file-opened',file,content);
 }
+
+ipcMain.on('open-url', (event, url) => {
+    shell.openExternal(url);
+});
