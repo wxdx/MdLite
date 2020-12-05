@@ -1,5 +1,6 @@
 const marked = require('marked');
 const {ipcRenderer,remote} = require('electron');
+const hljs  = require('highlight.js');
 const mainProcess  = require('electron').remote.require('./mian');
 const markdownView = document.querySelector('#markdown');
 const htmlView = document.querySelector('#html');
@@ -12,9 +13,34 @@ const showFileButton = document.querySelector('#show-file');
 const openInDefaultButton = document.querySelector('#open-in-default');
 const currentWindow = remote.getCurrentWindow();
 
+marked.setOptions({
+    renderer: new marked.Renderer(),
+    highlight: function(code) {
+      return hljs.highlightAuto(code).value;
+    },
+    pedantic: false,
+    gfm: true,
+    tables: true,
+    breaks: false,
+    sanitize: false,
+    smartLists: true,
+    smartypants: false,
+    xhtml: false
+    }
+  );
+
 const renderMarkdownToHtml = (markdown) => {
     htmlView.innerHTML = marked(markdown, {sanitize:true});
+    highlightCode();
 };
+
+const highlightCode = () => {
+    const preEl = document.querySelectorAll('pre')
+   
+    preEl.forEach((el) => {
+      hljs.highlightBlock(el)
+    })
+}
 
 markdownView.addEventListener('keyup', (event)=>{
     const currentContent = event.target.value;
