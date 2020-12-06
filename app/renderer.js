@@ -1,5 +1,6 @@
 const marked = require('marked');
 const {ipcRenderer,remote} = require('electron');
+const shell = require('electron').shell;
 const hljs  = require('highlight.js');
 const mainProcess  = require('electron').remote.require('./mian');
 const markdownView = document.querySelector('#markdown');
@@ -13,8 +14,12 @@ const showFileButton = document.querySelector('#show-file');
 const openInDefaultButton = document.querySelector('#open-in-default');
 const currentWindow = remote.getCurrentWindow();
 const path = require('path');
+let markdownChange = true
+let htmlChange = true
 let filePath = null;
 let originalContent = '';
+
+
 
 marked.setOptions({
     renderer: new marked.Renderer(),
@@ -46,19 +51,38 @@ const highlightCode = () => {
 }
 
 const addLinkListener = () => {
-    const links = document.querySelectorAll('a[href]')
+    const allLink = document.querySelectorAll('a');
+    const allImg = document.querySelectorAll('img');
+    const links = document.querySelectorAll('a[href^="http"]');
+    const imgs = document.querySelectorAll('img[src^="http"]');
+    allLink.forEach((link) => {
+        link.addEventListener('click',(e) => {
+            e.preventDefault();
+        });
+    })
     links.forEach((link) => {
-        link.addEventListener('click',(event) => {
-            event.preventDefault();
-            const url = event.target.href;
-            ipcRenderer.send('open-url', url);
+        link.addEventListener('click',(e) => {
+            const url = e.target.href;
+            shell.openExternal(url)
+        });
+    })
+
+    allImg.forEach((img) => {
+        img.addEventListener('click',(e) => {
+            e.preventDefault();
+        });
+    })
+    imgs.forEach((img) => {
+        img.addEventListener('click',(e) => {
+            e.preventDefault();
+            const url = e.target.src;
+            shell.openExternal(url)
         });
     })
 }
 
 const updateUserInterface = (isEdited) => {
     let title = 'MdLite';
-    console.log(filePath);
     if(filePath) {
         title = `${path.basename(filePath)} - ${title}`;
     }
@@ -71,6 +95,25 @@ const updateUserInterface = (isEdited) => {
     saveMarkdownButton.disabled = !isEdited;
     revertButton.disabled = !isEdited;
 }
+
+// 滚动条同步
+markdownView.addEventListener('scroll', event => {
+    if (markdownChange) {
+        htmlView.scrollTop = markdownView.scrollTop / (markdownView.scrollHeight - markdownView.clientHeight) * (htmlView.scrollHeight - htmlView.clientHeight)
+        htmlChange = false
+      } else {
+        markdownChange = true
+      }
+})
+
+htmlView.addEventListener('scroll', event => {
+    if (htmlChange) {
+        markdownView.scrollTop = htmlView.scrollTop / (htmlView.scrollHeight - htmlView.clientHeight) * (markdownView.scrollHeight - markdownView.clientHeight)
+        markdownChange = false
+      } else {
+        htmlChange = true
+      }
+})
 markdownView.addEventListener('keyup', (event)=>{
     const currentContent = event.target.value;
     renderMarkdownToHtml(currentContent);

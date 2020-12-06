@@ -1,4 +1,4 @@
-const { app, dialog ,BrowserWindow, ipcMain,shell,globalShortcut } = require('electron');
+const { app, dialog ,BrowserWindow, ipcMain,globalShortcut } = require('electron');
 const fs = require('fs')
 
 const windows = new Set();
@@ -40,8 +40,6 @@ app.on('will-quit', () => {
   
     // 注销所有快捷键
     globalShortcut.unregisterAll()
-
-    console.log('注销了所有快捷键')
 })
 
 const createWindow = exports.createWindow = () => {
@@ -140,7 +138,3 @@ const openFile = exports.openFile = (targetWindow,file) => {
     app.addRecentDocument(file);
     targetWindow.webContents.send('file-opened',file,content);
 }
-
-ipcMain.on('open-url', (event, url) => {
-    shell.openExternal(url);
-});
