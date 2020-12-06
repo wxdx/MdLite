@@ -1,10 +1,13 @@
-const { app, dialog ,BrowserWindow, ipcMain,shell } = require('electron');
+const { app, dialog ,BrowserWindow, ipcMain,shell,globalShortcut } = require('electron');
 const fs = require('fs')
 
 const windows = new Set();
 
 app.on('ready',() => {
-    createWindow();
+    const win = createWindow();
+    globalShortcut.register('CommandOrControl+S', () => {
+        win.webContents.send('cmd-s');
+    })
 });
 
 /** 针对 mac os集成  start*/
@@ -21,6 +24,25 @@ app.on('activate',(event,hasVisibleWindows) => {
 });
 
 /** 针对 mac os集成  end*/
+
+app.on('will-finish-launching',() => {
+    app.on('open-file', (event,file) => {
+        const win = createWindow();
+        win.once('ready-to-show', () => {
+            openFile(win,file);
+        })
+    })
+})
+
+app.on('will-quit', () => {
+    // 注销快捷键
+    globalShortcut.unregister('CommandOrControl+S')
+  
+    // 注销所有快捷键
+    globalShortcut.unregisterAll()
+
+    console.log('注销了所有快捷键')
+})
 
 const createWindow = exports.createWindow = () => {
 
@@ -76,8 +98,46 @@ const getFileFromUser = exports.getFileFromUser = (targetWindow) => {
     });
 };
 
-const openFile = (targetWindow,file) => {
+const saveHTML = exports.saveHTML = (targetWindow,content) => {
+    dialog.showSaveDialog(targetWindow,{
+        title: 'Save HTML',
+        defaultPath: app.getPath('home'),
+        filters : [
+            { name : 'HTML Files', extensions: ['html','htm']}
+        ]
+    }).then(result => {
+        
+        if(!result.canceled){
+            fs.writeFileSync(result.filePath,content);
+        }
+        
+    }).catch(err => {
+        console.log(err);
+    });
+};
+
+const saveMarkdown = exports.saveMarkdown = (targetWindow,file,content) =>{
+    if(!file){
+        file = dialog.showSaveDialogSync(targetWindow,{
+            title: 'Save Markdown',
+            defaultPath: app.getPath('home'),
+            filters : [
+                { name : 'Markdown Files', extensions: ['md','markdown']}
+            ]
+        })      
+    }
+    if(!file){
+        return;
+    }
+    fs.writeFileSync(file,content);
+    app.addRecentDocument(file);
+    targetWindow.webContents.send('file-opened',file,content);
+}
+
+const openFile = exports.openFile = (targetWindow,file) => {
     const content = fs.readFileSync(file).toString();
+    targetWindow.setRepresentedFilename(file);
+    app.addRecentDocument(file);
     targetWindow.webContents.send('file-opened',file,content);
 }
 

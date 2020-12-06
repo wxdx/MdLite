@@ -12,6 +12,9 @@ const saveHtmlButton = document.querySelector('#save-html');
 const showFileButton = document.querySelector('#show-file');
 const openInDefaultButton = document.querySelector('#open-in-default');
 const currentWindow = remote.getCurrentWindow();
+const path = require('path');
+let filePath = null;
+let originalContent = '';
 
 marked.setOptions({
     renderer: new marked.Renderer(),
@@ -48,15 +51,31 @@ const addLinkListener = () => {
         link.addEventListener('click',(event) => {
             event.preventDefault();
             const url = event.target.href;
-            console.log(url)
             ipcRenderer.send('open-url', url);
         });
     })
+}
+
+const updateUserInterface = (isEdited) => {
+    let title = 'MdLite';
+    console.log(filePath);
+    if(filePath) {
+        title = `${path.basename(filePath)} - ${title}`;
+    }
+    if(isEdited){
+        title = `${path.basename(title)}(Edited)`;
+    }
+    currentWindow.setTitle(title);
+    currentWindow.setDocumentEdited(isEdited);
+
+    saveMarkdownButton.disabled = !isEdited;
+    revertButton.disabled = !isEdited;
 }
 markdownView.addEventListener('keyup', (event)=>{
     const currentContent = event.target.value;
     renderMarkdownToHtml(currentContent);
     addLinkListener();
+    updateUserInterface(originalContent !== currentContent);
 })
 
 newFileButton.addEventListener('click',(event) => {
@@ -68,8 +87,28 @@ openFileButton.addEventListener('click',(event) => {
     mainProcess.getFileFromUser(currentWindow);
 })
 
+saveHtmlButton.addEventListener('click', event => {
+    mainProcess.saveHTML(currentWindow,htmlView.innerHTML);
+})
+
+saveMarkdownButton.addEventListener('click', event => {
+    mainProcess.saveMarkdown(currentWindow,filePath,markdownView.value);
+})
+
+revertButton.addEventListener('click', event => {
+    markdownView.value = originalContent;
+    renderMarkdownToHtml(originalContent);
+    updateUserInterface(false);
+})
+
 ipcRenderer.on('file-opened',(event,file,content) => {
+    filePath = file;
+    originalContent = content;
     markdownView.value = content;
     renderMarkdownToHtml(content);
+    updateUserInterface(false);
 })
+ipcRenderer.on('cmd-s', () => {
+    mainProcess.saveMarkdown(currentWindow,filePath,markdownView.value);
+});
 
