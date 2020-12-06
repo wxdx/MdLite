@@ -5,14 +5,71 @@
   "main": "app/mian.js",
   "scripts": {
     "start": "electron .",
+    "pack-win" : "electron-builder --win",
+    "pack-mac" : "electron-builder --mac",
+    "pack-linux" : "electron-builder --linux",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["markdown"],
+  "author": "wangxiaodong",
+  "license": "MIT",
+  "build": {
+    "productName":"MdLite",	
+    "appId": "me.wangxiaodong.mdlite",	
+    "copyright":"MIT",			
+    "directories": { 			
+      "output": "build"
+    }, 
+    "win": {  
+      "icon": "app/icons/mdLite.ico",
+      "target": [
+        {
+          "target": "nsis" 
+        }
+      ]
+    },
+    "dmg": { 
+        "contents": [
+          {
+            "x": 410,
+            "y": 150,
+            "type": "link",
+            "path": "/Applications"
+          },
+          {
+            "x": 130,
+            "y": 150,
+            "type": "file"
+          }
+        ]
+    },
+    "mac": {  
+      "icon": "./app/icons/mdLite.icns"
+    },
+    "linux": { 
+      "icon": "./app/icons/mdLite.icns"
+    },
+    "nsis": {
+      "oneClick": false, 
+      "allowElevation": true, 
+      "allowToChangeInstallationDirectory": true, 
+      "installerIcon": "./app/icons/mdLite.ico",
+      "uninstallerIcon": "./app/icons/mdLite.ico",
+      "installerHeaderIcon": "./app/icons/mdLite.ico", 
+      "createDesktopShortcut": true, 
+      "createStartMenuShortcut": true,
+      "shortcutName": "MdLite"
+    }
+    
+  
+  
+  },
   "dependencies": {
-    "electron": "^11.0.3",
     "highlight.js": "^10.4.1",
     "marked": "^1.2.5"
+  },
+  "devDependencies": {
+    "electron": "^11.0.3",
+    "electron-builder": "^22.9.1"
   }
 }
