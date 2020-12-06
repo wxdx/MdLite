@@ -20,6 +20,8 @@
     "directories": { 			
       "output": "build"
     }, 
+    "asar": true,
+    "compression": "normal",
     "win": {  
       "icon": "app/icons/Icon.ico",
       "target": [
