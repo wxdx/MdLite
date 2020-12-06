@@ -1,13 +1,10 @@
-const { app, dialog ,BrowserWindow, ipcMain,globalShortcut } = require('electron');
+const { app, dialog ,BrowserWindow, ipcMain } = require('electron');
 const fs = require('fs')
 
 const windows = new Set();
 
 app.on('ready',() => {
-    const win = createWindow();
-    globalShortcut.register('CommandOrControl+S', () => {
-        win.webContents.send('cmd-s');
-    })
+    createWindow();
 });
 
 /** 针对 mac os集成  start*/
@@ -32,14 +29,6 @@ app.on('will-finish-launching',() => {
             openFile(win,file);
         })
     })
-})
-
-app.on('will-quit', () => {
-    // 注销快捷键
-    globalShortcut.unregister('CommandOrControl+S')
-  
-    // 注销所有快捷键
-    globalShortcut.unregisterAll()
 })
 
 const createWindow = exports.createWindow = () => {

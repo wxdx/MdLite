@@ -151,7 +151,4 @@ ipcRenderer.on('file-opened',(event,file,content) => {
     renderMarkdownToHtml(content);
     updateUserInterface(false);
 })
-ipcRenderer.on('cmd-s', () => {
-    mainProcess.saveMarkdown(currentWindow,filePath,markdownView.value);
-});
 
