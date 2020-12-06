@@ -21,7 +21,7 @@
       "output": "build"
     }, 
     "win": {  
-      "icon": "app/icons/mdLite.ico",
+      "icon": "app/icons/Icon.ico",
       "target": [
         {
           "target": "nsis" 
@@ -44,10 +44,10 @@
         ]
     },
     "mac": {  
-      "icon": "./app/icons/mdLite.icns"
+      "icon": "./app/icons/Icon.icns"
     },
     "linux": { 
-      "icon": "./app/icons/mdLite.icns"
+      "icon": "./app/icons/Icon.icns"
     },
     "nsis": {
       "oneClick": false, 
