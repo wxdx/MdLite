@@ -1,7 +1,7 @@
-import marked from "marked";
 import {ipcRenderer,remote,shell} from "electron";
-import hljs from "highlight.js";
-import path from "path";
+import * as hljs from "highlight.js";
+import * as path from "path";
+import * as marked from "marked";
 
 
 const mainProcess  = remote.require('./mian');
@@ -37,6 +37,73 @@ marked.setOptions({
     xhtml: false
     }
   );
+
+
+
+// 滚动条同步
+markdownView?.addEventListener('scroll', event => {
+    if (markdownChange) {
+        if(htmlView != null){
+            htmlView.scrollTop = markdownView.scrollTop / (markdownView.scrollHeight - markdownView.clientHeight) * (htmlView.scrollHeight - htmlView.clientHeight)
+        }
+        htmlChange = false
+      } else {
+        markdownChange = true
+      }
+})
+
+htmlView?.addEventListener('scroll', event => {
+    if (htmlChange) {
+        if(markdownView != null){
+            markdownView.scrollTop = htmlView.scrollTop / (htmlView.scrollHeight - htmlView.clientHeight) * (markdownView.scrollHeight - markdownView.clientHeight)
+        }
+        markdownChange = false
+      } else {
+        htmlChange = true
+      }
+})
+markdownView?.addEventListener('keyup', (event)=>{
+    const currentContent = markdownView.getAttribute("value");
+    if(currentContent != null){
+        renderMarkdownToHtml(currentContent);
+        addLinkListener();
+        updateUserInterface(originalContent !== currentContent);
+    }
+})
+
+newFileButton?.addEventListener('click',(event) => {
+    mainProcess.createWindow();
+})
+
+openFileButton?.addEventListener('click',(event) => {
+
+    mainProcess.getFileFromUser(currentWindow);
+})
+
+saveHtmlButton?.addEventListener('click', event => {
+    mainProcess.saveHTML(currentWindow,htmlView?.innerHTML);
+})
+
+saveMarkdownButton?.addEventListener('click', event => {
+    let content: any = markdownView?.getAttribute("value");
+    mainProcess.saveMarkdown(currentWindow,filePath,content);
+})
+
+revertButton?.addEventListener('click', event => {
+    markdownView?.setAttribute("value",originalContent);
+    renderMarkdownToHtml(originalContent);
+    updateUserInterface(false);
+})
+
+ipcRenderer.on('file-opened',(event,file,content) => {
+    filePath = file;
+    originalContent = content;
+    markdownView?.setAttribute("value",content);
+    renderMarkdownToHtml(content);
+    updateUserInterface(false);
+})
+
+
 
 function renderMarkdownToHtml(markdown: string):void{
     if(htmlView != null){
@@ -104,67 +171,4 @@ function updateUserInterface(isEdited: boolean){
     saveMarkdownButton?.setAttribute("disabled",res);
     revertButton?.setAttribute("disabled",res);
 }
-
-// 滚动条同步
-markdownView?.addEventListener('scroll', event => {
-    if (markdownChange) {
-        if(htmlView != null){
-            htmlView.scrollTop = markdownView.scrollTop / (markdownView.scrollHeight - markdownView.clientHeight) * (htmlView.scrollHeight - htmlView.clientHeight)
-        }
-        htmlChange = false
-      } else {
-        markdownChange = true
-      }
-})
-
-htmlView?.addEventListener('scroll', event => {
-    if (htmlChange) {
-        if(markdownView != null){
-            markdownView.scrollTop = htmlView.scrollTop / (htmlView.scrollHeight - htmlView.clientHeight) * (markdownView.scrollHeight - markdownView.clientHeight)
-        }
-        markdownChange = false
-      } else {
-        htmlChange = true
-      }
-})
-markdownView?.addEventListener('keyup', (event)=>{
-    const currentContent = markdownView.getAttribute("value");
-    if(currentContent != null){
-        renderMarkdownToHtml(currentContent);
-        addLinkListener();
-        updateUserInterface(originalContent !== currentContent);
-    }
-})
-
-newFileButton?.addEventListener('click',(event) => {
-    mainProcess.createWindow();
-})
-
-openFileButton?.addEventListener('click',(event) => {
-
-    mainProcess.getFileFromUser(currentWindow);
-})
-
-saveHtmlButton?.addEventListener('click', event => {
-    mainProcess.saveHTML(currentWindow,htmlView?.innerHTML);
-})
-
-saveMarkdownButton?.addEventListener('click', event => {
-    let content: any = markdownView?.getAttribute("value");
-    mainProcess.saveMarkdown(currentWindow,filePath,content);
-})
-
-revertButton?.addEventListener('click', event => {
-    markdownView?.setAttribute("value",originalContent);
-    renderMarkdownToHtml(originalContent);
-    updateUserInterface(false);
-})
-
-ipcRenderer.on('file-opened',(event,file,content) => {
-    filePath = file;
-    originalContent = content;
-    markdownView?.setAttribute("value",content);
-    renderMarkdownToHtml(content);
-    updateUserInterface(false);
-})
 
