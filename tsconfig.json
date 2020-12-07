@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "outDir": "./build/",
+     /* 开启source map，利于调试 */
+    "sourceMap": true,
+    "module": "commonjs",
+    "noImplicitAny": true,
+    "target": "es5",
+    "allowJs": true
+  }
+}
